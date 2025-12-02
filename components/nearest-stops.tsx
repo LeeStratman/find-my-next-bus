@@ -69,7 +69,7 @@ export default function NearestStops({
 
   if (!hasSelection) {
     return (
-      <section className="rounded-3xl border border-white/10 bg-white/5 p-6 text-white shadow-lg backdrop-blur">
+    <section className="w-full rounded-none border-0 bg-transparent p-0 text-white sm:rounded-3xl sm:border sm:border-white/10 sm:bg-white/5 sm:p-6 sm:shadow-lg sm:backdrop-blur">
         <p className="text-sm text-white/70">
           Choose a route and direction to see nearby stops.
         </p>
@@ -79,7 +79,7 @@ export default function NearestStops({
 
   if (isLoading) {
     return (
-      <section className="rounded-3xl border border-white/10 bg-white/5 p-6 text-white shadow-lg backdrop-blur">
+    <section className="w-full rounded-none border-0 bg-transparent p-0 text-white sm:rounded-3xl sm:border sm:border-white/10 sm:bg-white/5 sm:p-6 sm:shadow-lg sm:backdrop-blur">
         <p className="text-sm text-white/70">Loading stops…</p>
       </section>
     );
@@ -87,7 +87,7 @@ export default function NearestStops({
 
   if (isError) {
     return (
-      <section className="rounded-3xl border border-white/10 bg-white/5 p-6 text-white shadow-lg backdrop-blur">
+    <section className="w-full rounded-none border-0 bg-transparent p-0 text-white sm:rounded-3xl sm:border sm:border-white/10 sm:bg-white/5 sm:p-6 sm:shadow-lg sm:backdrop-blur">
         <p className="text-sm text-rose-200">
           {(error as Error)?.message ?? "We couldn’t load stops for that route."}
         </p>
@@ -96,7 +96,7 @@ export default function NearestStops({
   }
 
   return (
-    <section className="rounded-3xl border border-white/10 bg-slate-900/60 p-6 text-white shadow-lg backdrop-blur">
+    <section className="w-full rounded-none border-0 bg-transparent p-0 text-white sm:rounded-3xl sm:border sm:border-white/10 sm:bg-slate-900/60 sm:p-6 sm:shadow-lg sm:backdrop-blur">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-xl font-semibold">Nearest stops</h3>

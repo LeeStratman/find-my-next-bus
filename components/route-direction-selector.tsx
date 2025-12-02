@@ -21,7 +21,7 @@ export default function RouteDirectionSelector() {
   });
 
   return (
-    <section className="rounded-3xl border border-white/10 bg-white/5 p-6 text-white shadow-lg backdrop-blur">
+    <section className="w-full rounded-none border-0 bg-transparent p-0 text-white sm:rounded-3xl sm:border sm:border-white/10 sm:bg-white/5 sm:p-6 sm:shadow-lg sm:backdrop-blur">
       <h2 className="text-2xl font-semibold">Choose your trip</h2>
       <p className="mt-1 text-sm text-white/70">
         Pick the route and direction you’re interested in. We’ll handle finding

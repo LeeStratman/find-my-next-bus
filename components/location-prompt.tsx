@@ -76,7 +76,7 @@ export default function LocationPrompt() {
   }, []);
 
   return (
-    <section className="rounded-3xl border border-white/10 bg-slate-900/50 p-6 text-white shadow-lg backdrop-blur">
+    <section className="w-full rounded-none border-0 bg-transparent p-0 text-white sm:rounded-3xl sm:border sm:border-white/10 sm:bg-slate-900/50 sm:p-6 sm:shadow-lg sm:backdrop-blur">
       <h3 className="text-xl font-semibold">Share your location</h3>
       <p className="mt-1 text-sm text-white/70">
         We’ll use it only to calculate which stops are closest. Nothing is sent
