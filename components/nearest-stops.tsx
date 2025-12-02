@@ -180,8 +180,8 @@ function StopCard({ stop, predictions, isActive, onSelect }: StopCardProps) {
         if (event.key === "Enter") onSelect?.();
       }}
     >
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex-1 space-y-1">
           <p className="text-lg font-semibold text-white">{stop.stpnm}</p>
           <p className="text-sm text-white/70">Stop #{stop.stpid}</p>
           {stop.distanceMeters !== undefined && (
@@ -190,11 +190,11 @@ function StopCard({ stop, predictions, isActive, onSelect }: StopCardProps) {
             </p>
           )}
         </div>
-        <div className="text-right">
-          <p className="text-sm uppercase tracking-wide text-white/60">
+        <div className="rounded-2xl bg-white/10 px-4 py-3 text-center sm:min-w-[150px] sm:text-right">
+          <p className="text-xs uppercase tracking-[0.2em] text-white/60">
             Next bus
           </p>
-          <p className="text-2xl font-semibold text-white">{countdown}</p>
+          <p className="text-3xl font-semibold text-white">{countdown}</p>
           {hasArrivals && (
             <p className="text-xs text-white/70">
               {nextPrediction.rt} → {nextPrediction.des}
@@ -202,7 +202,7 @@ function StopCard({ stop, predictions, isActive, onSelect }: StopCardProps) {
           )}
         </div>
       </div>
-      <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
+      <div className="mt-3 flex flex-col gap-3 text-sm sm:flex-row sm:items-center sm:justify-between">
         <a
           href={googleMapsUrl}
           target="_blank"
@@ -212,7 +212,7 @@ function StopCard({ stop, predictions, isActive, onSelect }: StopCardProps) {
         >
           Get directions
         </a>
-        <span className="text-xs text-white/60">
+        <span className="text-xs text-white/60 text-center sm:text-left">
           {stop.gtfsseq ? `Sequence #${stop.gtfsseq}` : "Sequence unknown"}
         </span>
       </div>
