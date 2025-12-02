@@ -96,7 +96,7 @@ export default function StopMap({
       marker.getElement().addEventListener("click", () => {
         onSelectStop?.(stop.stpid);
       });
-      markersRef.current.push(marker);
+      return marker;
     });
     return () => {
       if (Array.isArray(markersRef.current)) {
