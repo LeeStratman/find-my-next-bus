@@ -102,7 +102,8 @@ export default function NearestStops({
         <div>
           <h3 className="text-xl font-semibold">Nearest stops</h3>
           <p className="text-sm text-white/70">
-            Showing only stops with upcoming arrivals.
+            Showing only stops with upcoming arrivals. Tap a stop for map +
+            directions.
             {!location && " Enable location to sort by distance."}
           </p>
         </div>
