@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import type { StopWithMeta } from "@/components/nearest-stops";
 import type { Prediction } from "@/types/bustime";
-import { formatCountdown, parseBusTimeDate } from "@/lib/datetime";
+import { formatPredictionCountdown } from "@/lib/datetime";
 import { formatDistance } from "@/lib/geo";
 
 type StopOverviewModalProps = {
@@ -37,7 +37,7 @@ export default function StopOverviewModal({
     if (!filter.trim()) return orderedStops;
     const term = filter.toLowerCase();
     return orderedStops.filter((stop) =>
-      stop.stpnm.toLowerCase().includes(term),
+      stop.stpnm.toLowerCase().includes(term)
     );
   }, [orderedStops, filter]);
 
@@ -90,11 +90,7 @@ export default function StopOverviewModal({
               <tbody className="divide-y divide-white/10">
                 {filteredStops.map((stop) => {
                   const next = predictions[stop.stpid]?.[0];
-                  const countdown = next
-                    ? next.prdctdn
-                      ? `${next.prdctdn} min`
-                      : formatCountdown(parseBusTimeDate(next.prdtm))
-                    : "No arrivals";
+                  const countdown = formatPredictionCountdown(next);
                   return (
                     <tr key={stop.stpid} className="hover:bg-white/5">
                       <td className="px-4 py-3 font-mono text-xs text-white/60">
@@ -137,4 +133,3 @@ export default function StopOverviewModal({
     </Dialog.Root>
   );
 }
-

@@ -5,7 +5,7 @@ import maplibregl, { Marker, Popup } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { StopWithMeta } from "./nearest-stops";
 import type { Prediction } from "@/types/bustime";
-import { formatCountdown, parseBusTimeDate } from "@/lib/datetime";
+import { formatPredictionCountdown } from "@/lib/datetime";
 import { getMapStyleUrl } from "@/lib/map-style";
 
 type StopMapProps = {
@@ -33,11 +33,11 @@ export default function StopMap({
   useEffect(() => {
     if (!containerRef.current) return;
     if (mapRef.current) return;
-        const center: [number, number] = userLocation
-          ? [userLocation.lon, userLocation.lat]
-          : stops.length
-            ? [stops[0].lon, stops[0].lat]
-            : [-89.4, 43.07]; // Madison fallback
+    const center: [number, number] = userLocation
+      ? [userLocation.lon, userLocation.lat]
+      : stops.length
+      ? [stops[0].lon, stops[0].lat]
+      : [-89.4, 43.07]; // Madison fallback
     mapRef.current = new maplibregl.Map({
       container: containerRef.current,
       style: getMapStyleUrl(),
@@ -78,19 +78,15 @@ export default function StopMap({
     }
     markersRef.current = stops.map((stop) => {
       const nextPrediction = predictions[stop.stpid]?.[0];
-      const countdown = nextPrediction
-        ? nextPrediction.prdctdn
-          ? `${nextPrediction.prdctdn} min`
-          : formatCountdown(parseBusTimeDate(nextPrediction.prdtm))
-        : "No arrivals";
+      const countdown = formatPredictionCountdown(nextPrediction);
       const marker = new maplibregl.Marker({
         color: stop.stpid === selectedStopId ? "#f97316" : "#22c55e",
       })
         .setLngLat([stop.lon, stop.lat])
         .setPopup(
           new Popup({ closeButton: false, offset: 12 }).setHTML(
-            `<strong>${stop.stpnm}</strong><br/>Next bus: ${countdown}`,
-          ),
+            `<strong>${stop.stpnm}</strong><br/>Next bus: ${countdown}`
+          )
         )
         .addTo(mapRef.current!);
       marker.getElement().addEventListener("click", () => {
@@ -165,4 +161,3 @@ function LegendDot({ color, label }: { color: string; label: string }) {
     </span>
   );
 }
-

@@ -1,3 +1,5 @@
+import type { Prediction } from "@/types/bustime";
+
 export function parseBusTimeDate(value: string) {
   if (!value) return null;
   const [datePart, timePart] = value.split(" ");
@@ -12,7 +14,7 @@ export function parseBusTimeDate(value: string) {
     day,
     Number(hours),
     Number(minutes),
-    Number(seconds),
+    Number(seconds)
   );
   return isNaN(date.getTime()) ? null : date;
 }
@@ -29,3 +31,20 @@ export function formatCountdown(target: Date | null) {
   return `${totalMinutes} min`;
 }
 
+export function formatPredictionCountdown(prediction?: Prediction) {
+  if (!prediction) return "No arrivals";
+
+  const raw = prediction.prdctdn?.trim();
+  if (raw) {
+    if (raw.toUpperCase() === "DUE") {
+      return "DUE";
+    }
+    if (/^\d+$/.test(raw)) {
+      return `${raw} min`;
+    }
+    return raw;
+  }
+
+  const eta = prediction.prdtm ? parseBusTimeDate(prediction.prdtm) : null;
+  return formatCountdown(eta);
+}

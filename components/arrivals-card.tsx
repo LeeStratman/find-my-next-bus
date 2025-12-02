@@ -2,7 +2,7 @@
 
 import { useHomeStop } from "@/hooks/use-home-stop";
 import { getPredictions } from "@/lib/bustime";
-import { formatCountdown, parseBusTimeDate } from "@/lib/datetime";
+import { formatPredictionCountdown, parseBusTimeDate } from "@/lib/datetime";
 import type { Prediction } from "@/types/bustime";
 import { useQuery } from "@tanstack/react-query";
 
@@ -98,9 +98,7 @@ export default function ArrivalsCard() {
 
 function ArrivalRow(prediction: Prediction) {
   const etaDate = parseBusTimeDate(prediction.prdtm);
-  const countdown = prediction.prdctdn
-    ? `${prediction.prdctdn} min`
-    : formatCountdown(etaDate);
+  const countdown = formatPredictionCountdown(prediction);
   const isDelayed = prediction.dly || prediction.dyn === 1;
 
   return (

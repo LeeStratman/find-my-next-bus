@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import RouteDirectionSelector from "@/components/route-direction-selector";
 import LocationPrompt from "@/components/location-prompt";
 import NearestStops, { StopWithMeta } from "@/components/nearest-stops";
-import StopMap from "@/components/stop-map";
 import StopOverviewModal from "@/components/stop-overview-modal";
 import StopMapModal from "@/components/stop-map-modal";
 import { useRouteState } from "@/hooks/use-route-state";
@@ -22,16 +21,7 @@ export default function HomeContent() {
   const stopsQuery = useRouteStops();
   const hasSelection = Boolean(routeId && directionId);
   const [isOverviewOpen, setOverviewOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [isMapModalOpen, setMapModalOpen] = useState(false);
-
-  useEffect(() => {
-    const media = window.matchMedia("(max-width: 640px)");
-    const update = () => setIsMobile(media.matches);
-    update();
-    media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
-  }, []);
 
   const stopsWithMeta = useMemo<StopWithMeta[]>(() => {
     if (!stopsQuery.data) return [];
@@ -64,9 +54,7 @@ export default function HomeContent() {
       directionId,
       stopId,
     });
-    if (isMobile && stopId) {
-      setMapModalOpen(true);
-    }
+    setMapModalOpen(Boolean(stopId));
   };
 
   const nearestStopIds = useMemo(() => {
@@ -99,12 +87,6 @@ export default function HomeContent() {
       setMapModalOpen(false);
     }
   }, [selectedStopId]);
-
-  useEffect(() => {
-    if (!isMobile) {
-      setMapModalOpen(false);
-    }
-  }, [isMobile]);
 
   const selectedStop = useMemo(
     () => stopsWithMeta.find((stop) => stop.stpid === selectedStopId),
@@ -144,17 +126,6 @@ export default function HomeContent() {
           onOpenOverview={() => setOverviewOpen(true)}
         />
 
-        <div className="hidden sm:block">
-          <StopMap
-            stops={stopsWithArrivals}
-            predictions={predictionMap}
-            userLocation={location}
-            selectedStopId={selectedStopId}
-            onSelectStop={handleSelectStop}
-            hasSelection={hasSelection}
-          />
-        </div>
-
         <StopOverviewModal
           isOpen={isOverviewOpen}
           onClose={() => setOverviewOpen(false)}
@@ -165,7 +136,7 @@ export default function HomeContent() {
         <StopMapModal
           stop={selectedStop}
           predictions={selectedStopId ? predictionMap[selectedStopId] : []}
-          isOpen={Boolean(isMobile && isMapModalOpen && selectedStop)}
+          isOpen={Boolean(isMapModalOpen && selectedStop)}
           onClose={() => setMapModalOpen(false)}
           userLocation={location}
         />

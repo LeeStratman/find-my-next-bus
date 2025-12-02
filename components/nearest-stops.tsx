@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { formatCountdown, parseBusTimeDate } from "@/lib/datetime";
+import { formatPredictionCountdown } from "@/lib/datetime";
 import { formatDistance, haversineDistance } from "@/lib/geo";
 import { Prediction, Stop } from "@/types/bustime";
 
@@ -69,7 +69,7 @@ export default function NearestStops({
 
   if (!hasSelection) {
     return (
-    <section className="w-full rounded-none border-0 bg-transparent p-0 text-white sm:rounded-3xl sm:border sm:border-white/10 sm:bg-white/5 sm:p-6 sm:shadow-lg sm:backdrop-blur">
+      <section className="w-full rounded-none border-0 bg-transparent p-0 text-white sm:rounded-3xl sm:border sm:border-white/10 sm:bg-white/5 sm:p-6 sm:shadow-lg sm:backdrop-blur">
         <p className="text-sm text-white/70">
           Choose a route and direction to see nearby stops.
         </p>
@@ -79,7 +79,7 @@ export default function NearestStops({
 
   if (isLoading) {
     return (
-    <section className="w-full rounded-none border-0 bg-transparent p-0 text-white sm:rounded-3xl sm:border sm:border-white/10 sm:bg-white/5 sm:p-6 sm:shadow-lg sm:backdrop-blur">
+      <section className="w-full rounded-none border-0 bg-transparent p-0 text-white sm:rounded-3xl sm:border sm:border-white/10 sm:bg-white/5 sm:p-6 sm:shadow-lg sm:backdrop-blur">
         <p className="text-sm text-white/70">Loading stops…</p>
       </section>
     );
@@ -87,9 +87,10 @@ export default function NearestStops({
 
   if (isError) {
     return (
-    <section className="w-full rounded-none border-0 bg-transparent p-0 text-white sm:rounded-3xl sm:border sm:border-white/10 sm:bg-white/5 sm:p-6 sm:shadow-lg sm:backdrop-blur">
+      <section className="w-full rounded-none border-0 bg-transparent p-0 text-white sm:rounded-3xl sm:border sm:border-white/10 sm:bg-white/5 sm:p-6 sm:shadow-lg sm:backdrop-blur">
         <p className="text-sm text-rose-200">
-          {(error as Error)?.message ?? "We couldn’t load stops for that route."}
+          {(error as Error)?.message ??
+            "We couldn’t load stops for that route."}
         </p>
       </section>
     );
@@ -115,15 +116,15 @@ export default function NearestStops({
               View all stops
             </button>
           )}
-        {sortedStops.length > maxDefault && (
-          <button
-            type="button"
-            className="rounded-full border border-white/30 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white transition hover:border-white"
-            onClick={() => setShowAll((prev) => !prev)}
-          >
-            {showAll ? "Show less" : "Show all"}
-          </button>
-        )}
+          {sortedStops.length > maxDefault && (
+            <button
+              type="button"
+              className="rounded-full border border-white/30 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white transition hover:border-white"
+              onClick={() => setShowAll((prev) => !prev)}
+            >
+              {showAll ? "Show less" : "Show all"}
+            </button>
+          )}
         </div>
       </header>
 
@@ -139,8 +140,8 @@ export default function NearestStops({
         ))}
         {!visibleStops.length && (
           <p className="text-sm text-white/70">
-            No upcoming arrivals for this route right now. Try again soon or view
-            all stops for schedule info.
+            No upcoming arrivals for this route right now. Try again soon or
+            view all stops for schedule info.
           </p>
         )}
       </div>
@@ -157,12 +158,8 @@ type StopCardProps = {
 
 function StopCard({ stop, predictions, isActive, onSelect }: StopCardProps) {
   const nextPrediction = predictions?.[0];
+  const countdown = formatPredictionCountdown(nextPrediction);
   const hasArrivals = Boolean(nextPrediction);
-  const countdown = hasArrivals
-    ? nextPrediction.prdctdn
-      ? `${nextPrediction.prdctdn} min`
-      : formatCountdown(parseBusTimeDate(nextPrediction.prdtm))
-    : "No arrivals";
 
   const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${stop.lat},${stop.lon}&travelmode=walking`;
 
@@ -219,4 +216,3 @@ function StopCard({ stop, predictions, isActive, onSelect }: StopCardProps) {
     </article>
   );
 }
-
