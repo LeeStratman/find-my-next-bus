@@ -56,7 +56,13 @@ export default function LocationPrompt() {
       },
       (err) => {
         setStatus("error");
-        setError(err.message || "Couldn’t access your location.");
+        if (err.code === err.PERMISSION_DENIED) {
+          setError(
+            "Location was blocked. In Brave/Chrome, allow location for this site (padlock → Site settings) or disable Shields, then try again.",
+          );
+        } else {
+          setError(err.message || "Couldn’t access your location.");
+        }
       },
       {
         enableHighAccuracy: true,
