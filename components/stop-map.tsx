@@ -33,11 +33,11 @@ export default function StopMap({
   useEffect(() => {
     if (!containerRef.current) return;
     if (mapRef.current) return;
-    const center = userLocation
-      ? [userLocation.lon, userLocation.lat]
-      : stops.length
-        ? [stops[0].lon, stops[0].lat]
-        : [-89.4, 43.07]; // Madison fallback
+        const center: [number, number] = userLocation
+          ? [userLocation.lon, userLocation.lat]
+          : stops.length
+            ? [stops[0].lon, stops[0].lat]
+            : [-89.4, 43.07]; // Madison fallback
     mapRef.current = new maplibregl.Map({
       container: containerRef.current,
       style: getMapStyleUrl(),
