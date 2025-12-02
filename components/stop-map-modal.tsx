@@ -13,6 +13,7 @@ type StopMapModalProps = {
   predictions?: Prediction[];
   isOpen: boolean;
   onClose: () => void;
+  userLocation?: { lat: number; lon: number };
 };
 
 export default function StopMapModal({
@@ -20,15 +21,21 @@ export default function StopMapModal({
   predictions = [],
   isOpen,
   onClose,
+  userLocation,
 }: StopMapModalProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
+  const userMarkerRef = useRef<maplibregl.Marker | null>(null);
 
   useEffect(() => {
     if (!isOpen || !stop || !containerRef.current) {
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
+      }
+      if (userMarkerRef.current) {
+        userMarkerRef.current.remove();
+        userMarkerRef.current = null;
       }
       return;
     }
@@ -48,13 +55,30 @@ export default function StopMapModal({
       .setLngLat([stop.lon, stop.lat])
       .setPopup(
         new Popup({ closeButton: false, offset: 12 }).setHTML(
-          `<strong>${stop.stpnm}</strong><br/>Next bus: ${countdown}`,
-        ),
+          `<strong>${stop.stpnm}</strong><br/>Next bus: ${countdown}`
+        )
       )
       .addTo(mapRef.current);
-  }, [isOpen, stop, predictions]);
+
+    if (userLocation) {
+      userMarkerRef.current = new maplibregl.Marker({
+        color: "#22d3ee",
+      })
+        .setLngLat([userLocation.lon, userLocation.lat])
+        .setPopup(new Popup().setText("You are here"))
+        .addTo(mapRef.current);
+    }
+  }, [isOpen, stop, predictions, userLocation]);
 
   if (!isOpen || !stop) return null;
+
+  const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${stop.lat},${stop.lon}&travelmode=walking`;
+  const nextPrediction = predictions[0];
+  const countdown = nextPrediction
+    ? nextPrediction.prdctdn
+      ? `${nextPrediction.prdctdn} min`
+      : formatCountdown(parseBusTimeDate(nextPrediction.prdtm))
+    : "No arrivals";
 
   return (
     <div
@@ -84,8 +108,21 @@ export default function StopMapModal({
           className="mt-4 h-[360px] w-full rounded-2xl"
           aria-label={`${stop.stpnm} map`}
         />
+        <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
+          <p className="text-xs uppercase tracking-[0.3em] text-white/60">
+            Next bus:{" "}
+            <span className="text-base font-semibold">{countdown}</span>
+          </p>
+          <a
+            href={googleMapsUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-full border border-white/30 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white transition hover:border-white"
+          >
+            Get directions
+          </a>
+        </div>
       </div>
     </div>
   );
 }
-
