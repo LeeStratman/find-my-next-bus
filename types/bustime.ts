@@ -36,6 +36,22 @@ export interface Stop {
   ada?: boolean;
 }
 
+export interface PatternPoint {
+  seq?: number;
+  typ?: "S" | "W";
+  stpid?: string;
+  stpnm?: string;
+  lat?: number;
+  lon?: number;
+}
+
+export interface Pattern {
+  pid: number;
+  ln?: number;
+  rtdir?: string;
+  pt?: PatternPoint[];
+}
+
 export interface Prediction {
   tmstmp: string;
   typ: "A" | "D";
@@ -76,4 +92,3 @@ export interface ServiceBulletin {
     stpnm?: string;
   }>;
 }
-

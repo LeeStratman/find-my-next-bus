@@ -1,0 +1,68 @@
+"use client";
+
+import { useState } from "react";
+import { useRouteState } from "@/hooks/use-route-state";
+
+export default function LocationPrompt() {
+  const { location, setLocation } = useRouteState();
+  const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
+  const [error, setError] = useState<string | null>(null);
+
+  const requestLocation = () => {
+    if (!navigator.geolocation) {
+      setError("Geolocation isn’t supported in this browser.");
+      return;
+    }
+    setStatus("loading");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocation({
+          lat: pos.coords.latitude,
+          lon: pos.coords.longitude,
+          accuracy: pos.coords.accuracy,
+        });
+        setStatus("idle");
+        setError(null);
+      },
+      (err) => {
+        setStatus("error");
+        setError(err.message || "Couldn’t access your location.");
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 30_000,
+        timeout: 10_000,
+      },
+    );
+  };
+
+  return (
+    <section className="rounded-3xl border border-white/10 bg-slate-900/50 p-6 text-white shadow-lg backdrop-blur">
+      <h3 className="text-xl font-semibold">Share your location</h3>
+      <p className="mt-1 text-sm text-white/70">
+        We’ll use it only to calculate which stops are closest. Nothing is sent
+        to a server.
+      </p>
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={requestLocation}
+          className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 disabled:opacity-70"
+          disabled={status === "loading"}
+        >
+          {location ? "Refresh location" : "Use current location"}
+        </button>
+        {location && (
+          <p className="text-sm text-white/70">
+            Using your location (±{Math.round(location.accuracy ?? 15)}m)
+          </p>
+        )}
+      </div>
+      {status === "loading" && (
+        <p className="mt-2 text-sm text-white/70">Locating…</p>
+      )}
+      {error && <p className="mt-2 text-sm text-rose-200">{error}</p>}
+    </section>
+  );
+}
+

@@ -5,6 +5,7 @@ import type {
   Route,
   Direction,
   Stop,
+  Pattern,
 } from "@/types/bustime";
 
 const PROXY_BASE = process.env.NEXT_PUBLIC_BUSTIME_PROXY_BASE ?? "/api/bustime";
@@ -116,7 +117,33 @@ export async function getStopsForRoute(routeId: string, directionId: string) {
     rt: routeId,
     dir: directionId,
   });
-  const stops = payload.stop ?? payload.stops ?? [];
+  let stops = payload.stop ?? payload.stops ?? [];
+  let missingSequence = stops.some(
+    (stop) => stop.gtfsseq === undefined || stop.gtfsseq === null
+  );
+
+  if (missingSequence) {
+    const patternsPayload = await request<{ ptr?: Pattern[] }>("getpatterns", {
+      rt: routeId,
+    });
+    const pattern = patternsPayload.ptr?.find(
+      (pattern) => pattern.rtdir === directionId
+    );
+    if (pattern) {
+      const sequenceMap = new Map<string, number>();
+      pattern.pt
+        ?.filter((pt) => pt.typ === "S" && pt.stpid)
+        .forEach((pt, index) => {
+          if (pt.stpid) sequenceMap.set(pt.stpid, index + 1);
+        });
+      stops = stops.map((stop) => ({
+        ...stop,
+        gtfsseq: stop.gtfsseq ?? sequenceMap.get(stop.stpid ?? "") ?? undefined,
+      }));
+      missingSequence = false;
+    }
+  }
+
   const normalised = stops.map((stop) => ({
     ...stop,
     lat: Number(stop.lat),
@@ -126,8 +153,11 @@ export async function getStopsForRoute(routeId: string, directionId: string) {
         ? Number(stop.gtfsseq)
         : undefined,
   }));
-  normalised.sort((a, b) =>
-    a.stpnm.localeCompare(b.stpnm, undefined, { sensitivity: "base" })
-  );
+  normalised.sort((a, b) => {
+    const seqA = a.gtfsseq ?? Number.POSITIVE_INFINITY;
+    const seqB = b.gtfsseq ?? Number.POSITIVE_INFINITY;
+    if (seqA !== seqB) return seqA - seqB;
+    return a.stpnm.localeCompare(b.stpnm, undefined, { sensitivity: "base" });
+  });
   return normalised;
 }

@@ -25,9 +25,9 @@ Create a `.env.local` file based on `env.example`:
 cp env.example .env.local
 ```
 
-Then edit the values (at minimum `BUSTIME_API_KEY`). You can optionally set `NOMINATIM_USER_AGENT` to identify your app when calling the free OpenStreetMap geocoder.
+Then edit the values (at minimum `BUSTIME_API_KEY`). You can optionally set `NOMINATIM_USER_AGENT` to identify your app when calling the free OpenStreetMap geocoder, and either `NEXT_PUBLIC_MAPTILER_KEY` or `NEXT_PUBLIC_MAP_STYLE_URL` to point MapLibre at a richer basemap.
 
-Only server-side code reads the API key via the proxy route; never expose it via `NEXT_PUBLIC_` variables.
+Only server-side code reads the BusTime API key via the proxy route; never expose it via `NEXT_PUBLIC_` variables. Map tiles can be public (a MapTiler key is designed to go client-side).
 
 ## Development
 

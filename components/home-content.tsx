@@ -1,0 +1,106 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import RouteDirectionSelector from "@/components/route-direction-selector";
+import LocationPrompt from "@/components/location-prompt";
+import NearestStops, { StopWithMeta } from "@/components/nearest-stops";
+import StopMap from "@/components/stop-map";
+import { useRouteState } from "@/hooks/use-route-state";
+import { haversineDistance } from "@/lib/geo";
+import { useRouteStops } from "@/hooks/use-route-stops";
+import { useStopPredictions } from "@/hooks/use-stop-predictions";
+export default function HomeContent() {
+  const { routeId, directionId, location } = useRouteState();
+  const [selection, setSelection] = useState<{
+    routeId?: string;
+    directionId?: string;
+    stopId?: string;
+  }>({});
+  const stopsQuery = useRouteStops();
+  const hasSelection = Boolean(routeId && directionId);
+
+  const selectedStopId =
+    selection.routeId === routeId && selection.directionId === directionId
+      ? selection.stopId
+      : undefined;
+
+  const handleSelectStop = (stopId?: string) => {
+    if (!routeId || !directionId) return;
+    setSelection({
+      routeId,
+      directionId,
+      stopId,
+    });
+  };
+
+  const stopsWithMeta = useMemo<StopWithMeta[]>(() => {
+    if (!stopsQuery.data) return [];
+    return stopsQuery.data.map((stop) => ({
+      ...stop,
+      distanceMeters: location
+        ? haversineDistance(location, { lat: stop.lat, lon: stop.lon })
+        : undefined,
+    }));
+  }, [stopsQuery.data, location]);
+
+  const predictionStopIds = useMemo(() => {
+    const copy = [...stopsWithMeta];
+    copy.sort((a, b) => {
+      const distA = a.distanceMeters ?? Number.POSITIVE_INFINITY;
+      const distB = b.distanceMeters ?? Number.POSITIVE_INFINITY;
+      if (distA !== distB) return distA - distB;
+      const seqA = a.gtfsseq ?? Number.POSITIVE_INFINITY;
+      const seqB = b.gtfsseq ?? Number.POSITIVE_INFINITY;
+      if (seqA !== seqB) return seqA - seqB;
+      return a.stpnm.localeCompare(b.stpnm);
+    });
+    return copy.slice(0, location ? 12 : 8).map((stop) => stop.stpid);
+  }, [stopsWithMeta, location]);
+
+  const predictionMap = useStopPredictions(predictionStopIds, hasSelection);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+      <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-10 sm:px-6 lg:px-8">
+        <header className="space-y-2 text-white">
+          <p className="text-sm uppercase tracking-[0.3em] text-white/60">
+            Madison Metro
+          </p>
+          <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">
+            Find the right stop — fast
+          </h1>
+          <p className="max-w-3xl text-base text-white/80">
+            Pick the route you’re boarding, share your location, and we’ll show
+            which stops are closest along with live arrivals and walking
+            directions.
+          </p>
+        </header>
+
+        <RouteDirectionSelector />
+        <LocationPrompt />
+
+        <NearestStops
+          stops={stopsWithMeta}
+          location={location}
+          predictions={predictionMap}
+          isLoading={stopsQuery.isLoading}
+          isError={stopsQuery.isError}
+          error={stopsQuery.error}
+          hasSelection={hasSelection}
+          selectedStopId={selectedStopId}
+          onSelectStop={handleSelectStop}
+        />
+
+        <StopMap
+          stops={stopsWithMeta}
+          predictions={predictionMap}
+          userLocation={location}
+          selectedStopId={selectedStopId}
+          onSelectStop={handleSelectStop}
+          hasSelection={hasSelection}
+        />
+      </main>
+    </div>
+  );
+}
+
