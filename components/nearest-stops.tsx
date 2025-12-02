@@ -168,7 +168,7 @@ function StopCard({ stop, predictions, isActive, onSelect }: StopCardProps) {
 
   return (
     <article
-      className={`rounded-2xl border px-4 py-3 transition ${
+      className={`w-full rounded-2xl border px-4 py-3 transition ${
         isActive
           ? "border-white bg-white/20"
           : "border-white/10 bg-white/5 hover:border-white/30"
