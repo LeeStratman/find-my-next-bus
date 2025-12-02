@@ -1,26 +1,56 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouteState } from "@/hooks/use-route-state";
+import { haversineDistance } from "@/lib/geo";
+
+function formatAccuracyMetersToImperial(meters?: number) {
+  if (meters === undefined || meters === null || Number.isNaN(meters)) {
+    return "unknown accuracy";
+  }
+  const feet = meters * 3.28084;
+  if (feet >= 528) {
+    const miles = feet / 5280;
+    return `±${miles.toFixed(1)} mi`;
+  }
+  return `±${Math.round(feet)} ft`;
+}
 
 export default function LocationPrompt() {
   const { location, setLocation } = useRouteState();
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
+  const watchIdRef = useRef<number | null>(null);
+  const lastLocationRef = useRef<{ lat: number; lon: number } | null>(null);
+
+  const formattedAccuracy = useMemo(
+    () => formatAccuracyMetersToImperial(location?.accuracy),
+    [location?.accuracy],
+  );
 
   const requestLocation = () => {
     if (!navigator.geolocation) {
       setError("Geolocation isn’t supported in this browser.");
       return;
     }
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+    }
     setStatus("loading");
-    navigator.geolocation.getCurrentPosition(
+    watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
-        setLocation({
+        const next = {
           lat: pos.coords.latitude,
           lon: pos.coords.longitude,
           accuracy: pos.coords.accuracy,
-        });
+        };
+        const movedEnough =
+          !lastLocationRef.current ||
+          haversineDistance(lastLocationRef.current, next) >= 15.24; // ~50ft
+        if (movedEnough) {
+          setLocation(next);
+          lastLocationRef.current = next;
+        }
         setStatus("idle");
         setError(null);
       },
@@ -35,6 +65,15 @@ export default function LocationPrompt() {
       },
     );
   };
+
+  useEffect(() => {
+    return () => {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+    };
+  }, []);
 
   return (
     <section className="rounded-3xl border border-white/10 bg-slate-900/50 p-6 text-white shadow-lg backdrop-blur">
@@ -54,7 +93,7 @@ export default function LocationPrompt() {
         </button>
         {location && (
           <p className="text-sm text-white/70">
-            Using your location (±{Math.round(location.accuracy ?? 15)}m)
+            Using your location ({formattedAccuracy})
           </p>
         )}
       </div>

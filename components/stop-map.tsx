@@ -61,6 +61,14 @@ export default function StopMap({
         .addTo(mapRef.current);
     }
   }, [userLocation]);
+  useEffect(() => {
+    if (!mapRef.current || !userLocation) return;
+    mapRef.current.flyTo({
+      center: [userLocation.lon, userLocation.lat],
+      zoom: 14,
+      essential: false,
+    });
+  }, [userLocation]);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -129,6 +137,11 @@ export default function StopMap({
       {!hasSelection && (
         <p className="text-sm text-white/70">
           Pick a route and direction to see stops on the map.
+        </p>
+      )}
+      {hasSelection && stops.length === 0 && (
+        <p className="text-sm text-white/70">
+          No upcoming arrivals to display on the map right now.
         </p>
       )}
       <div

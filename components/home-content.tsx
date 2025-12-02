@@ -5,6 +5,7 @@ import RouteDirectionSelector from "@/components/route-direction-selector";
 import LocationPrompt from "@/components/location-prompt";
 import NearestStops, { StopWithMeta } from "@/components/nearest-stops";
 import StopMap from "@/components/stop-map";
+import StopOverviewModal from "@/components/stop-overview-modal";
 import { useRouteState } from "@/hooks/use-route-state";
 import { haversineDistance } from "@/lib/geo";
 import { useRouteStops } from "@/hooks/use-route-stops";
@@ -18,20 +19,7 @@ export default function HomeContent() {
   }>({});
   const stopsQuery = useRouteStops();
   const hasSelection = Boolean(routeId && directionId);
-
-  const selectedStopId =
-    selection.routeId === routeId && selection.directionId === directionId
-      ? selection.stopId
-      : undefined;
-
-  const handleSelectStop = (stopId?: string) => {
-    if (!routeId || !directionId) return;
-    setSelection({
-      routeId,
-      directionId,
-      stopId,
-    });
-  };
+  const [isOverviewOpen, setOverviewOpen] = useState(false);
 
   const stopsWithMeta = useMemo<StopWithMeta[]>(() => {
     if (!stopsQuery.data) return [];
@@ -43,7 +31,7 @@ export default function HomeContent() {
     }));
   }, [stopsQuery.data, location]);
 
-  const predictionStopIds = useMemo(() => {
+  const sortedStopsByDistance = useMemo<StopWithMeta[]>(() => {
     const copy = [...stopsWithMeta];
     copy.sort((a, b) => {
       const distA = a.distanceMeters ?? Number.POSITIVE_INFINITY;
@@ -54,10 +42,43 @@ export default function HomeContent() {
       if (seqA !== seqB) return seqA - seqB;
       return a.stpnm.localeCompare(b.stpnm);
     });
-    return copy.slice(0, location ? 12 : 8).map((stop) => stop.stpid);
-  }, [stopsWithMeta, location]);
+    return copy;
+  }, [stopsWithMeta]);
 
-  const predictionMap = useStopPredictions(predictionStopIds, hasSelection);
+  const handleSelectStop = (stopId?: string) => {
+    if (!routeId || !directionId) return;
+    setSelection({
+      routeId,
+      directionId,
+      stopId,
+    });
+  };
+
+  const nearestStopIds = useMemo(() => {
+    const limit = location ? 20 : 12;
+    return sortedStopsByDistance.slice(0, limit).map((stop) => stop.stpid);
+  }, [sortedStopsByDistance, location]);
+
+  const predictionMap = useStopPredictions(
+    hasSelection ? nearestStopIds : [],
+    hasSelection,
+  );
+
+  const stopsWithArrivals = useMemo(() => {
+    if (!hasSelection) return [];
+    return sortedStopsByDistance.filter(
+      (stop) => (predictionMap[stop.stpid]?.length ?? 0) > 0,
+    );
+  }, [sortedStopsByDistance, predictionMap, hasSelection]);
+
+  const selectedStopId =
+    selection.routeId === routeId &&
+    selection.directionId === directionId &&
+    selection.stopId &&
+    stopsWithArrivals.some((stop) => stop.stpid === selection.stopId)
+      ? selection.stopId
+      : undefined;
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
@@ -80,7 +101,7 @@ export default function HomeContent() {
         <LocationPrompt />
 
         <NearestStops
-          stops={stopsWithMeta}
+          stops={stopsWithArrivals}
           location={location}
           predictions={predictionMap}
           isLoading={stopsQuery.isLoading}
@@ -89,15 +110,22 @@ export default function HomeContent() {
           hasSelection={hasSelection}
           selectedStopId={selectedStopId}
           onSelectStop={handleSelectStop}
+          onOpenOverview={() => setOverviewOpen(true)}
         />
 
         <StopMap
-          stops={stopsWithMeta}
+          stops={stopsWithArrivals}
           predictions={predictionMap}
           userLocation={location}
           selectedStopId={selectedStopId}
           onSelectStop={handleSelectStop}
           hasSelection={hasSelection}
+        />
+        <StopOverviewModal
+          isOpen={isOverviewOpen}
+          onClose={() => setOverviewOpen(false)}
+          stops={stopsWithMeta}
+          predictions={predictionMap}
         />
       </main>
     </div>

@@ -20,6 +20,7 @@ type NearestStopsProps = {
   onSelectStop?: (stopId: string) => void;
   selectedStopId?: string;
   maxDefault?: number;
+  onOpenOverview?: () => void;
 };
 
 export default function NearestStops({
@@ -33,6 +34,7 @@ export default function NearestStops({
   onSelectStop,
   selectedStopId,
   maxDefault = 6,
+  onOpenOverview,
 }: NearestStopsProps) {
   const [showAll, setShowAll] = useState(false);
 
@@ -99,11 +101,20 @@ export default function NearestStops({
         <div>
           <h3 className="text-xl font-semibold">Nearest stops</h3>
           <p className="text-sm text-white/70">
-            {location
-              ? "Sorted by distance from your location."
-              : "Enable location to see distance-based ranking."}
+            Showing only stops with upcoming arrivals.
+            {!location && " Enable location to sort by distance."}
           </p>
         </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {onOpenOverview && (
+            <button
+              type="button"
+              className="rounded-full border border-white/30 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white transition hover:border-white"
+              onClick={onOpenOverview}
+            >
+              View all stops
+            </button>
+          )}
         {sortedStops.length > maxDefault && (
           <button
             type="button"
@@ -113,6 +124,7 @@ export default function NearestStops({
             {showAll ? "Show less" : "Show all"}
           </button>
         )}
+        </div>
       </header>
 
       <div className="mt-4 space-y-4">
@@ -127,7 +139,8 @@ export default function NearestStops({
         ))}
         {!visibleStops.length && (
           <p className="text-sm text-white/70">
-            No stops found for this route/direction.
+            No upcoming arrivals for this route right now. Try again soon or view
+            all stops for schedule info.
           </p>
         )}
       </div>
